@@ -2,11 +2,16 @@ package main
 
 import (
 	"encoding/base64"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
+	"net/url"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
@@ -16,10 +21,18 @@ import (
 
 // ServiceContext contains common data used by all handlers
 type ServiceContext struct {
-	Version    string
-	API        string
-	AuthToken  string
-	I18NBundle *i18n.Bundle
+	Version         string
+	API             string
+	AuthToken       string
+	AccessToken     string
+	AccessExpiresAt time.Time
+	I18NBundle      *i18n.Bundle
+}
+
+// RequestError contains http status code and message for and API request
+type RequestError struct {
+	StatusCode int
+	Message    string
 }
 
 // InitializeService will initialize the service context based on the config parameters.
@@ -34,6 +47,9 @@ func InitializeService(version string, cfg *ServiceConfig) *ServiceContext {
 	log.Printf("Create base64 encoded JRML auth token...")
 	token := fmt.Sprintf("%s:%s", cfg.APIKey, cfg.APISecret)
 	svc.AuthToken = base64.StdEncoding.EncodeToString([]byte(token))
+
+	log.Printf("Authenticate with JMRL API")
+	svc.getAccessToken()
 
 	log.Printf("Init localization")
 	svc.I18NBundle = i18n.NewBundle(language.English)
@@ -71,6 +87,23 @@ func (svc *ServiceContext) healthCheck(c *gin.Context) {
 		Message string `json:"message,omitempty"`
 	}
 	hcMap := make(map[string]hcResp)
+
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	authURL := fmt.Sprintf("%s/token", svc.API)
+	postReq, _ := http.NewRequest("POST", authURL, nil)
+	postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
+	resp, postErr := client.Do(postReq)
+	log.Printf("Response %+v", resp)
+	if postErr != nil {
+		hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
+	} else if resp.StatusCode != 200 {
+		hcMap["jmrl"] = hcResp{Healthy: false, Message: resp.Status}
+	} else {
+		hcMap["jmrl"] = hcResp{Healthy: true}
+	}
 
 	c.JSON(http.StatusOK, hcMap)
 }
@@ -117,8 +150,144 @@ func (svc *ServiceContext) authMiddleware(c *gin.Context) {
 		c.AbortWithStatus(http.StatusUnauthorized)
 		return
 	}
-
-	// do something with token
-
 	log.Printf("got bearer token: [%s]", token)
+}
+
+// GetAccess token will POST to the JMRL API /v5/token API to get an access token with an expiration time
+// Results will be stored in the ServiceContext
+func (svc *ServiceContext) getAccessToken() error {
+	log.Printf("Get JMRL access token")
+	startTime := time.Now()
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	authURL := fmt.Sprintf("%s/token", svc.API)
+	postReq, _ := http.NewRequest("POST", authURL, nil)
+	postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
+	postResp, postErr := client.Do(postReq)
+
+	status := "Successful"
+	if postErr != nil {
+		status = "Failed"
+	}
+	elapsedNanoSec := time.Since(startTime)
+	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
+	log.Printf("%s response from POST %s. Elapsed Time: %d (ms)", status, authURL, elapsedMS)
+
+	respBytes, respErr := handleAPIResponse(authURL, postResp, postErr)
+	if respErr != nil {
+		svc.AccessExpiresAt = time.Now()
+		svc.AccessToken = ""
+		return errors.New(respErr.Message)
+	}
+
+	log.Printf("Authentication successful; parsing response")
+	var authResp struct {
+		AccessToken   string `json:"access_token"`
+		TokenType     string `json:"token_type"`
+		ExpireSeconds int    `json:"expires_in"`
+	}
+
+	parseErr := json.Unmarshal(respBytes, &authResp)
+	if parseErr != nil {
+		log.Printf("ERROR: Unable to parse auth response: %v", parseErr)
+		svc.AccessExpiresAt = time.Now()
+		svc.AccessToken = ""
+		return parseErr
+	}
+
+	log.Printf("Authentication successful, expires in %d seconds", authResp.ExpireSeconds)
+	svc.AccessToken = authResp.AccessToken
+	svc.AccessExpiresAt = time.Now().Add(time.Second * time.Duration(authResp.ExpireSeconds))
+	return nil
+}
+
+// APIPost sends a POST to the JMRL API and returns results a byte array
+func (svc *ServiceContext) apiPost(tgtURL string, values url.Values) ([]byte, *RequestError) {
+	log.Printf("JMRL API POST request: %s", tgtURL)
+	startTime := time.Now()
+	if startTime.After(svc.AccessExpiresAt) {
+		log.Printf("Access token has expired; requesting a new one")
+		authErr := svc.getAccessToken()
+		if authErr != nil {
+			return nil, &RequestError{StatusCode: 401, Message: authErr.Error()}
+		}
+	}
+
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	postReq, _ := http.NewRequest("POST", tgtURL, nil)
+	postReq.Header.Set("deleted", "false")
+	postReq.Header.Set("suppressed", "false")
+	postReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
+	resp, err := client.Do(postReq)
+	status := "Successful"
+	if err != nil {
+		status = "Failed"
+	}
+	elapsedNanoSec := time.Since(startTime)
+	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
+	log.Printf("%s response from POST %s. Elapsed Time: %d (ms)", status, tgtURL, elapsedMS)
+	return handleAPIResponse(tgtURL, resp, err)
+}
+
+// APIGet sends a GET to the JMRL API and returns results a byte array
+func (svc *ServiceContext) apiGet(tgtURL string) ([]byte, *RequestError) {
+	log.Printf("JMRL API GET request: %s", tgtURL)
+	startTime := time.Now()
+	if startTime.After(svc.AccessExpiresAt) {
+		log.Printf("Access token has expired; requesting a new one")
+		authErr := svc.getAccessToken()
+		if authErr != nil {
+			return nil, &RequestError{StatusCode: 401, Message: authErr.Error()}
+		}
+	}
+
+	timeout := time.Duration(5 * time.Second)
+	client := http.Client{
+		Timeout: timeout,
+	}
+	getReq, _ := http.NewRequest("GET", tgtURL, nil)
+	getReq.Header.Set("deleted", "false")
+	getReq.Header.Set("suppressed", "false")
+	getReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
+	resp, err := client.Do(getReq)
+	status := "Successful"
+	if err != nil {
+		status = "Failed"
+	}
+	elapsedNanoSec := time.Since(startTime)
+	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
+	log.Printf("%s response from GET %s. Elapsed Time: %d (ms)", status, tgtURL, elapsedMS)
+	return handleAPIResponse(tgtURL, resp, err)
+}
+
+func handleAPIResponse(URL string, resp *http.Response, err error) ([]byte, *RequestError) {
+	if err != nil {
+		status := http.StatusBadRequest
+		errMsg := err.Error()
+		if strings.Contains(err.Error(), "Timeout") {
+			status = http.StatusRequestTimeout
+			errMsg = fmt.Sprintf("%s timed out", URL)
+		} else if strings.Contains(err.Error(), "connection refused") {
+			status = http.StatusServiceUnavailable
+			errMsg = fmt.Sprintf("%s refused connection", URL)
+		}
+		log.Printf("ERROR: %s request failed: %s", URL, errMsg)
+		return nil, &RequestError{StatusCode: status, Message: errMsg}
+	} else if resp.StatusCode != http.StatusOK {
+		defer resp.Body.Close()
+		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		status := resp.StatusCode
+		errMsg := string(bodyBytes)
+		log.Printf("ERROR: %s request failed: %s", URL, errMsg)
+		return nil, &RequestError{StatusCode: status, Message: errMsg}
+	}
+
+	defer resp.Body.Close()
+	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	return bodyBytes, nil
 }
