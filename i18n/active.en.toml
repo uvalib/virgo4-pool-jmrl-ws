@@ -1,0 +1,7 @@
+[PoolName]
+desc = "The display name for the JMRL pool"
+other = "Jefferson Madison Regional Library"
+
+[PoolDescription]
+desc = "The detailed description for the JMRL pool"
+other = "Materials from the Jefferson Madison Regional Library"
