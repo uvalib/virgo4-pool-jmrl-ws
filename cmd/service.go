@@ -166,23 +166,20 @@ func (svc *ServiceContext) getAccessToken() error {
 	postReq, _ := http.NewRequest("POST", authURL, nil)
 	postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
 	postResp, postErr := client.Do(postReq)
-
-	status := "Successful"
-	if postErr != nil {
-		status = "Failed"
-	}
+	respBytes, respErr := handleAPIResponse(authURL, postResp, postErr)
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-	log.Printf("%s response from POST %s. Elapsed Time: %d (ms)", status, authURL, elapsedMS)
 
-	respBytes, respErr := handleAPIResponse(authURL, postResp, postErr)
 	if respErr != nil {
 		svc.AccessExpiresAt = time.Now()
 		svc.AccessToken = ""
+		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
+			authURL, respErr.StatusCode, respErr.Message, elapsedMS)
 		return errors.New(respErr.Message)
+	} else {
+		log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", authURL, elapsedMS)
 	}
 
-	log.Printf("Authentication successful; parsing response")
 	var authResp struct {
 		AccessToken   string `json:"access_token"`
 		TokenType     string `json:"token_type"`
@@ -223,15 +220,20 @@ func (svc *ServiceContext) apiPost(tgtURL string, values url.Values) ([]byte, *R
 	postReq.Header.Set("deleted", "false")
 	postReq.Header.Set("suppressed", "false")
 	postReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
-	resp, err := client.Do(postReq)
-	status := "Successful"
-	if err != nil {
-		status = "Failed"
-	}
+	rawResp, rawErr := client.Do(postReq)
+	resp, err := handleAPIResponse(tgtURL, rawResp, rawErr)
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-	log.Printf("%s response from POST %s. Elapsed Time: %d (ms)", status, tgtURL, elapsedMS)
-	return handleAPIResponse(tgtURL, resp, err)
+
+	if err != nil {
+		svc.AccessExpiresAt = time.Now()
+		svc.AccessToken = ""
+		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
+			tgtURL, err.StatusCode, err.Message, elapsedMS)
+	} else {
+		log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", tgtURL, elapsedMS)
+	}
+	return resp, err
 }
 
 // APIGet sends a GET to the JMRL API and returns results a byte array
@@ -254,15 +256,20 @@ func (svc *ServiceContext) apiGet(tgtURL string) ([]byte, *RequestError) {
 	getReq.Header.Set("deleted", "false")
 	getReq.Header.Set("suppressed", "false")
 	getReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
-	resp, err := client.Do(getReq)
-	status := "Successful"
-	if err != nil {
-		status = "Failed"
-	}
+	rawResp, rawErr := client.Do(getReq)
+	resp, err := handleAPIResponse(tgtURL, rawResp, rawErr)
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-	log.Printf("%s response from GET %s. Elapsed Time: %d (ms)", status, tgtURL, elapsedMS)
-	return handleAPIResponse(tgtURL, resp, err)
+
+	if err != nil {
+		svc.AccessExpiresAt = time.Now()
+		svc.AccessToken = ""
+		log.Printf("ERROR: Failed response from GET %s - %d:%s. Elapsed Time: %d (ms)",
+			tgtURL, err.StatusCode, err.Message, elapsedMS)
+	} else {
+		log.Printf("Successful response from GET %s. Elapsed Time: %d (ms)", tgtURL, elapsedMS)
+	}
+	return resp, err
 }
 
 func handleAPIResponse(URL string, resp *http.Response, err error) ([]byte, *RequestError) {
@@ -276,14 +283,12 @@ func handleAPIResponse(URL string, resp *http.Response, err error) ([]byte, *Req
 			status = http.StatusServiceUnavailable
 			errMsg = fmt.Sprintf("%s refused connection", URL)
 		}
-		log.Printf("ERROR: %s request failed: %s", URL, errMsg)
 		return nil, &RequestError{StatusCode: status, Message: errMsg}
 	} else if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
 		bodyBytes, _ := ioutil.ReadAll(resp.Body)
 		status := resp.StatusCode
 		errMsg := string(bodyBytes)
-		log.Printf("ERROR: %s request failed: %s", URL, errMsg)
 		return nil, &RequestError{StatusCode: status, Message: errMsg}
 	}
 
