@@ -226,8 +226,6 @@ func (svc *ServiceContext) apiPost(tgtURL string, values url.Values) ([]byte, *R
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
 	if err != nil {
-		svc.AccessExpiresAt = time.Now()
-		svc.AccessToken = ""
 		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
 			tgtURL, err.StatusCode, err.Message, elapsedMS)
 	} else {
@@ -262,8 +260,6 @@ func (svc *ServiceContext) apiGet(tgtURL string) ([]byte, *RequestError) {
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
 	if err != nil {
-		svc.AccessExpiresAt = time.Now()
-		svc.AccessToken = ""
 		log.Printf("ERROR: Failed response from GET %s - %d:%s. Elapsed Time: %d (ms)",
 			tgtURL, err.StatusCode, err.Message, elapsedMS)
 	} else {
