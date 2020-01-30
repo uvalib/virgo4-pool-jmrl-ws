@@ -88,22 +88,22 @@ func (svc *ServiceContext) healthCheck(c *gin.Context) {
 	}
 	hcMap := make(map[string]hcResp)
 
-	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
-	authURL := fmt.Sprintf("%s/token", svc.API)
-	postReq, _ := http.NewRequest("POST", authURL, nil)
-	postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
-	resp, postErr := client.Do(postReq)
-	log.Printf("Response %+v", resp)
-	if postErr != nil {
-		hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
-	} else if resp.StatusCode != 200 {
-		hcMap["jmrl"] = hcResp{Healthy: false, Message: resp.Status}
-	} else {
-		hcMap["jmrl"] = hcResp{Healthy: true}
-	}
+	// timeout := time.Duration(5 * time.Second)
+	// client := http.Client{
+	// 	Timeout: timeout,
+	// }
+	// authURL := fmt.Sprintf("%s/token", svc.API)
+	// postReq, _ := http.NewRequest("POST", authURL, nil)
+	// postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
+	// resp, postErr := client.Do(postReq)
+	// log.Printf("Response %+v", resp)
+	// if postErr != nil {
+	// 	hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
+	// } else if resp.StatusCode != 200 {
+	// 	hcMap["jmrl"] = hcResp{Healthy: false, Message: resp.Status}
+	// } else {
+	// 	hcMap["jmrl"] = hcResp{Healthy: true}
+	// }
 
 	c.JSON(http.StatusOK, hcMap)
 }
