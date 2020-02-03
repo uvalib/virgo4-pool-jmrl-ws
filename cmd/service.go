@@ -178,9 +178,8 @@ func (svc *ServiceContext) getAccessToken() error {
 		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
 			authURL, respErr.StatusCode, respErr.Message, elapsedMS)
 		return errors.New(respErr.Message)
-	} else {
-		log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", authURL, elapsedMS)
 	}
+	log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", authURL, elapsedMS)
 
 	var authResp struct {
 		AccessToken   string `json:"access_token"`
