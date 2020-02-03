@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
@@ -22,7 +23,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 
 	// dates are not suported and will cause no results to be returned
 	// Fail this query with a bad request and info about the reason
-	log.Printf("Raw query: %s", req.Query)
+	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
 	if strings.Contains(req.Query, "date:") {
 		log.Printf("ERROR: date queries are not supported")
 		c.String(http.StatusBadRequest, "Date queries are not supported by JMRL")
@@ -52,14 +53,24 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	parsedQ = strings.TrimSpace(parsedQ)
 	log.Printf("Parsed query: [%s]", parsedQ)
 	parsedQ = url.QueryEscape(parsedQ)
-	tgtURL := fmt.Sprintf("%s/bibs/search?text=%s", svc.API, parsedQ)
+	fields := "fields=default,varFields"
+	paging := fmt.Sprintf("offset=%d&limit=%d", req.Pagination.Start, req.Pagination.Start)
+	tgtURL := fmt.Sprintf("%s/bibs/search?text=%s&%s&%s", svc.API, parsedQ, paging, fields)
 	resp, err := svc.apiGet(tgtURL)
 	if err != nil {
 		c.String(err.StatusCode, err.Message)
 		return
 	}
 
-	log.Printf("RESPONSE: %s", resp)
+	jmrlResp := &JMRLResult{}
+	respErr := json.Unmarshal(resp, jmrlResp)
+	if respErr != nil {
+		log.Printf("ERROR: Invalid response from JMRL API: %s", respErr.Error())
+		c.String(http.StatusInternalServerError, respErr.Error())
+		return
+	}
+
+	log.Printf("Response: %+v", jmrlResp)
 
 	c.String(http.StatusNotImplemented, "Not yet implemented")
 }
