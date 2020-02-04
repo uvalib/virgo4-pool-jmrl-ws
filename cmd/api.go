@@ -29,10 +29,9 @@ type PoolResult struct {
 
 // Group contains the records for a single group in a search result set.
 type Group struct {
-	Value   string        `json:"value"`
-	Count   int           `json:"count"`
-	Fields  []RecordField `json:"fields,omitempty"`
-	Records []Record      `json:"record_list,omitempty"`
+	Value   string   `json:"value"`
+	Count   int      `json:"count"`
+	Records []Record `json:"record_list,omitempty"`
 }
 
 // Record is a summary of one search hit
@@ -58,16 +57,17 @@ type JMRLResult struct {
 	Start   int `json:"start"`
 	Entries []struct {
 		Relevance float32 `json:"relevance"`
-		Bib       struct {
-			ID          string          `json:"id"`
-			Title       string          `json:"title"`
-			Author      string          `json:"author"`
-			PublishYear string          `json:"publish_year"`
-			Language    JMRLCodeValue   `json:"lang"`
-			Type        JMRLCodeValue   `json:"materialType"`
-			VarFields   []JMRLVarFields `json:"varFields"`
-		} `json:"bib"`
+		Bib       JMRLBib `json:"bib"`
 	} `json:"entries"`
+}
+
+// JMRLBib contans the MARC and JRML data for a single query hit
+type JMRLBib struct {
+	ID          string          `json:"id"`
+	PublishYear int             `json:"publishYear"`
+	Language    JMRLCodeValue   `json:"lang"`
+	Type        JMRLCodeValue   `json:"materialType"`
+	VarFields   []JMRLVarFields `json:"varFields"`
 }
 
 // JMRLCodeValue is a pair of code / value or code/name data
@@ -79,7 +79,6 @@ type JMRLCodeValue struct {
 
 // JMRLVarFields contains MARC data from the JRML fields=varFields request param
 type JMRLVarFields struct {
-	FieldTag  string `json:"fieldTag"`
 	MarcTag   string `json:"marcTag"`
 	Subfields []struct {
 		Tag     string `json:"tag"`
