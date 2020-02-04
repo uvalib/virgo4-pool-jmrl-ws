@@ -46,18 +46,18 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		idx0 := indexAt(parsedQ, "{", iIdx)
 		idx1 := indexAt(parsedQ, "}", idx0)
 		idStr := parsedQ[idx0+1 : idx1]
-		idQ := fmt.Sprintf("(b:(%s) OR c:(%s))", idStr, idStr)
+		idQ := fmt.Sprintf("(b:%s OR c:%s OR u:%s)", idStr, idStr, idStr)
 		parsedQ = fmt.Sprintf("%s%s%s", parsedQ[0:iIdx], idQ, parsedQ[idx1+1:])
 	}
-	parsedQ = strings.ReplaceAll(parsedQ, "{", "(")
-	parsedQ = strings.ReplaceAll(parsedQ, "}", ")")
+	parsedQ = strings.ReplaceAll(parsedQ, "{", "")
+	parsedQ = strings.ReplaceAll(parsedQ, "}", "")
 	parsedQ = strings.ReplaceAll(parsedQ, "keyword: ", "")
 	parsedQ = strings.ReplaceAll(parsedQ, "title: ", "t:")
 	parsedQ = strings.ReplaceAll(parsedQ, "author: ", "a:")
 	parsedQ = strings.ReplaceAll(parsedQ, "subject: ", "d:")
 
 	parsedQ = strings.TrimSpace(parsedQ)
-	log.Printf("Parsed query: [%s]", parsedQ)
+	log.Printf("Parsed query: %s", parsedQ)
 	parsedQ = url.QueryEscape(parsedQ)
 	fields := "fields=default,varFields,locations,available"
 	paging := fmt.Sprintf("offset=%d&limit=%d", req.Pagination.Start, 20)
@@ -81,7 +81,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	respErr := json.Unmarshal(resp, jmrlResp)
 	if respErr != nil {
 		log.Printf("ERROR: Invalid response from JMRL API: %s", respErr.Error())
-		v4Resp.StatusCode = http.StatusInsufficientStorage
+		v4Resp.StatusCode = http.StatusInternalServerError
 		v4Resp.StatusMessage = respErr.Error()
 		c.JSON(err.StatusCode, v4Resp)
 		return
@@ -166,15 +166,14 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		fields = append(fields, f)
 	}
 
-	vals = getVarField(&bib.VarFields, "650", "a")
-	for _, val := range vals {
-		f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
-		fields = append(fields, f)
-	}
-	vals = getVarField(&bib.VarFields, "651", "a")
-	for _, val := range vals {
-		f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
-		fields = append(fields, f)
+	// Get subjects....
+	marcIDs := []string{"600", "650", "651", "647"}
+	for _, id := range marcIDs {
+		vals = getVarField(&bib.VarFields, id, "a")
+		for _, val := range vals {
+			f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
+			fields = append(fields, f)
+		}
 	}
 
 	vals = getVarField(&bib.VarFields, "520", "a")
@@ -199,7 +198,7 @@ func getResultFields(bib *JMRLBib) []RecordField {
 
 func stripTrailingData(value string) string {
 	lastChar := string(value[len(value)-1])
-	if lastChar == ":" || lastChar == "/" {
+	if lastChar == ":" || lastChar == "/" || lastChar == "." {
 		value = value[0 : len(value)-1]
 		value = strings.TrimSpace(value)
 	}
