@@ -175,8 +175,8 @@ func (svc *ServiceContext) getAccessToken() error {
 	if respErr != nil {
 		svc.AccessExpiresAt = time.Now()
 		svc.AccessToken = ""
-		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
-			authURL, respErr.StatusCode, respErr.Message, elapsedMS)
+		log.Printf("ERROR: Failed response from POST %s %d. Elapsed Time: %d (ms). %s",
+			authURL, respErr.StatusCode, elapsedMS, respErr.Message)
 		return errors.New(respErr.Message)
 	}
 	log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", authURL, elapsedMS)
@@ -227,8 +227,8 @@ func (svc *ServiceContext) apiPost(tgtURL string, values url.Values) ([]byte, *R
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
 	if err != nil {
-		log.Printf("ERROR: Failed response from POST %s - %d:%s. Elapsed Time: %d (ms)",
-			tgtURL, err.StatusCode, err.Message, elapsedMS)
+		log.Printf("ERROR: Failed response from POST %s %d. Elapsed Time: %d (ms). %s",
+			tgtURL, err.StatusCode, elapsedMS, err.Message)
 	} else {
 		log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", tgtURL, elapsedMS)
 	}
@@ -261,8 +261,8 @@ func (svc *ServiceContext) apiGet(tgtURL string) ([]byte, *RequestError) {
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
 
 	if err != nil {
-		log.Printf("ERROR: Failed response from GET %s - %d:%s. Elapsed Time: %d (ms)",
-			tgtURL, err.StatusCode, err.Message, elapsedMS)
+		log.Printf("ERROR: Failed response from GET %s %d. Elapsed Time: %d (ms). %s",
+			tgtURL, err.StatusCode, elapsedMS, err.Message)
 	} else {
 		log.Printf("Successful response from GET %s. Elapsed Time: %d (ms)", tgtURL, elapsedMS)
 	}
