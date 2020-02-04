@@ -94,8 +94,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		groupRec := Group{Value: bib.ID, Count: 1}
 		groupRec.Records = make([]Record, 0)
 		record := Record{}
-		record.Fields = make([]RecordField, 0)
-		addResultFields(&record, &bib)
+		record.Fields = getResultFields(&bib)
 		groupRec.Records = append(groupRec.Records, record)
 		v4Resp.Groups = append(v4Resp.Groups, groupRec)
 	}
@@ -107,68 +106,71 @@ func (svc *ServiceContext) search(c *gin.Context) {
 }
 
 // TODO localization of labels
-func addResultFields(record *Record, bib *JMRLBib) {
+func getResultFields(bib *JMRLBib) []RecordField {
+	fields := make([]RecordField, 0)
 	f := RecordField{Name: "id", Type: "identifier", Label: "Identifier",
 		Value: bib.ID, Display: "optional"}
-	record.Fields = append(record.Fields, f)
+	fields = append(fields, f)
 
 	f = RecordField{Name: "publication_date", Type: "publication_date", Label: "Publication Date",
 		Value: fmt.Sprintf("%d", bib.PublishYear)}
-	record.Fields = append(record.Fields, f)
+	fields = append(fields, f)
 
 	f = RecordField{Name: "format", Type: "format", Label: "Format",
 		Value: bib.Type.Value}
-	record.Fields = append(record.Fields, f)
+	fields = append(fields, f)
 
 	f = RecordField{Name: "language", Type: "language", Label: "Language",
 		Value: bib.Language.Value, Visibility: "detailed"}
-	record.Fields = append(record.Fields, f)
+	fields = append(fields, f)
 
-	vals := getVarField(record, &bib.VarFields, "245", "a")
+	vals := getVarField(&bib.VarFields, "245", "a")
 	f = RecordField{Name: "title", Type: "title", Label: "Title", Value: vals[0]}
-	record.Fields = append(record.Fields, f)
+	fields = append(fields, f)
 
-	vals = getVarField(record, &bib.VarFields, "245", "b")
+	vals = getVarField(&bib.VarFields, "245", "b")
 	if len(vals) > 0 {
 		f = RecordField{Name: "subtitle", Type: "subtitle", Label: "Subtitle", Value: vals[0]}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "020", "a")
+	vals = getVarField(&bib.VarFields, "020", "a")
 	for _, val := range vals {
 		f = RecordField{Name: "isbn", Type: "isbn", Label: "ISBN", Value: val}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "100", "a")
+	vals = getVarField(&bib.VarFields, "100", "a")
 	for _, val := range vals {
 		f = RecordField{Name: "author", Type: "author", Label: "Author", Value: val}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "650", "a")
+	vals = getVarField(&bib.VarFields, "650", "a")
 	for _, val := range vals {
 		f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "520", "a")
+	vals = getVarField(&bib.VarFields, "520", "a")
 	if len(vals) > 0 {
 		f = RecordField{Name: "summary", Type: "summary", Label: "Summary", Value: vals[0]}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "776", "d")
+	vals = getVarField(&bib.VarFields, "776", "d")
 	if len(vals) > 0 {
 		f = RecordField{Name: "published", Type: "published", Label: "Published", Value: vals[0], Visibility: "detailed"}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
 
-	vals = getVarField(record, &bib.VarFields, "856", "u")
+	vals = getVarField(&bib.VarFields, "856", "u")
 	if len(vals) > 0 {
 		f = RecordField{Name: "freading_url", Type: "url", Label: "Access Online", Value: vals[0]}
-		record.Fields = append(record.Fields, f)
+		fields = append(fields, f)
 	}
+	log.Printf("FIELDS %v", fields)
+	return fields
 }
 
 func stripTrailingData(value string) string {
@@ -181,7 +183,7 @@ func stripTrailingData(value string) string {
 }
 
 /// helper to get an array of MARC values for the target element
-func getVarField(record *Record, varFields *[]JMRLVarFields, marc string, subfield string) []string {
+func getVarField(varFields *[]JMRLVarFields, marc string, subfield string) []string {
 	out := make([]string, 0)
 	for _, field := range *varFields {
 		if field.MarcTag == marc {
@@ -214,5 +216,29 @@ func (svc *ServiceContext) facets(c *gin.Context) {
 func (svc *ServiceContext) getResource(c *gin.Context) {
 	id := c.Param("id")
 	log.Printf("Resource %s details requested", id)
-	c.String(http.StatusNotImplemented, "Not yet implemented")
+	acceptLang := strings.Split(c.GetHeader("Accept-Language"), ",")[0]
+	if acceptLang == "" {
+		acceptLang = "en-US"
+	}
+
+	tgtURL := fmt.Sprintf("%s/bibs/%s?fields=default,varFields", svc.API, id)
+	resp, err := svc.apiGet(tgtURL)
+	if err != nil {
+		c.JSON(err.StatusCode, err.Message)
+		return
+	}
+
+	jmrlBib := &JMRLBib{}
+	respErr := json.Unmarshal(resp, jmrlBib)
+	if respErr != nil {
+		log.Printf("ERROR: Invalid response from JMRL API: %s", respErr.Error())
+		c.JSON(http.StatusInternalServerError, respErr.Error())
+		return
+	}
+
+	var jsonResp struct {
+		Fields []RecordField `json:"fields"`
+	}
+	jsonResp.Fields = getResultFields(jmrlBib)
+	c.JSON(http.StatusOK, jsonResp)
 }
