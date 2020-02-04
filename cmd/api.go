@@ -67,6 +67,8 @@ type JMRLBib struct {
 	PublishYear int             `json:"publishYear"`
 	Language    JMRLCodeValue   `json:"lang"`
 	Type        JMRLCodeValue   `json:"materialType"`
+	Locations   []JMRLCodeValue `json:"locations"`
+	Available   bool            `json:"available"`
 	VarFields   []JMRLVarFields `json:"varFields"`
 }
 

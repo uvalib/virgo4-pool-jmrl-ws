@@ -59,7 +59,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	parsedQ = strings.TrimSpace(parsedQ)
 	log.Printf("Parsed query: [%s]", parsedQ)
 	parsedQ = url.QueryEscape(parsedQ)
-	fields := "fields=default,varFields"
+	fields := "fields=default,varFields,locations,available"
 	paging := fmt.Sprintf("offset=%d&limit=%d", req.Pagination.Start, 20)
 	tgtURL := fmt.Sprintf("%s/bibs/search?text=%s&%s&%s", svc.API, parsedQ, paging, fields)
 
@@ -112,6 +112,19 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		Value: bib.ID, Display: "optional"}
 	fields = append(fields, f)
 
+	f = RecordField{Name: "availability", Type: "availability", Label: "Availability",
+		Value: "Available"}
+	if bib.Available == false {
+		f.Value = "Not Available"
+	}
+	fields = append(fields, f)
+
+	for _, loc := range bib.Locations {
+		f = RecordField{Name: "location", Type: "location", Label: "Location",
+			Value: loc.Name, Visibility: "detailed"}
+		fields = append(fields, f)
+	}
+
 	f = RecordField{Name: "publication_date", Type: "publication_date", Label: "Publication Date",
 		Value: fmt.Sprintf("%d", bib.PublishYear)}
 	fields = append(fields, f)
@@ -136,7 +149,14 @@ func getResultFields(bib *JMRLBib) []RecordField {
 
 	vals = getVarField(&bib.VarFields, "020", "a")
 	for _, val := range vals {
-		f = RecordField{Name: "isbn", Type: "isbn", Label: "ISBN", Value: val}
+		f = RecordField{Name: "isbn", Type: "isbn", Label: "ISBN", Value: val, Visibility: "detailed"}
+		fields = append(fields, f)
+	}
+
+	vals = getVarField(&bib.VarFields, "092", "")
+	for _, val := range vals {
+		f = RecordField{Name: "call_number", Type: "call_number", Label: "Call Number",
+			Value: val, Visibility: "detailed"}
 		fields = append(fields, f)
 	}
 
@@ -147,6 +167,11 @@ func getResultFields(bib *JMRLBib) []RecordField {
 	}
 
 	vals = getVarField(&bib.VarFields, "650", "a")
+	for _, val := range vals {
+		f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
+		fields = append(fields, f)
+	}
+	vals = getVarField(&bib.VarFields, "651", "a")
 	for _, val := range vals {
 		f = RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
 		fields = append(fields, f)
@@ -169,7 +194,6 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		f = RecordField{Name: "freading_url", Type: "url", Label: "Access Online", Value: vals[0]}
 		fields = append(fields, f)
 	}
-	log.Printf("FIELDS %v", fields)
 	return fields
 }
 
@@ -186,12 +210,21 @@ func stripTrailingData(value string) string {
 func getVarField(varFields *[]JMRLVarFields, marc string, subfield string) []string {
 	out := make([]string, 0)
 	for _, field := range *varFields {
+		val := ""
 		if field.MarcTag == marc {
 			for _, sub := range field.Subfields {
-				if sub.Tag == subfield {
-					out = append(out, stripTrailingData(sub.Content))
+				if subfield == "" {
+					if val != "" {
+						val += " "
+					}
+					val += stripTrailingData(sub.Content)
+				} else if sub.Tag == subfield {
+					val = stripTrailingData(sub.Content)
 				}
 			}
+		}
+		if val != "" {
+			out = append(out, val)
 		}
 	}
 	return out
@@ -221,7 +254,7 @@ func (svc *ServiceContext) getResource(c *gin.Context) {
 		acceptLang = "en-US"
 	}
 
-	tgtURL := fmt.Sprintf("%s/bibs/%s?fields=default,varFields", svc.API, id)
+	tgtURL := fmt.Sprintf("%s/bibs/%s?fields=default,varFields,locations,available", svc.API, id)
 	resp, err := svc.apiGet(tgtURL)
 	if err != nil {
 		c.JSON(err.StatusCode, err.Message)
