@@ -1,6 +1,6 @@
 [PoolName]
 desc = "The display name for the JMRL pool"
-other = "Jefferson Madison Regional Library"
+other = "JMRL"
 
 [PoolDescription]
 desc = "The detailed description for the JMRL pool"

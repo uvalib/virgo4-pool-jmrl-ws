@@ -112,16 +112,8 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		Value: bib.ID, Display: "optional"}
 	fields = append(fields, f)
 
-	f = RecordField{Name: "availability", Type: "availability", Label: "Availability",
-		Value: "Available"}
-	if bib.Available == false {
-		f.Value = "Not Available"
-	}
-	fields = append(fields, f)
-
 	for _, loc := range bib.Locations {
-		f = RecordField{Name: "location", Type: "location", Label: "Location",
-			Value: loc.Name, Visibility: "detailed"}
+		f = RecordField{Name: "location", Type: "location", Label: "Location", Value: loc.Name}
 		fields = append(fields, f)
 	}
 
@@ -188,11 +180,20 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		fields = append(fields, f)
 	}
 
+	availF := RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "By Request"}
 	vals = getVarField(&bib.VarFields, "856", "u")
 	if len(vals) > 0 {
 		f = RecordField{Name: "freading_url", Type: "url", Label: "Access Online", Value: vals[0]}
 		fields = append(fields, f)
+		if bib.Available {
+			availF.Value = "Online"
+		}
+	} else {
+		if bib.Available {
+			availF.Value = "On Shelf"
+		}
 	}
+	fields = append(fields, availF)
 	return fields
 }
 
