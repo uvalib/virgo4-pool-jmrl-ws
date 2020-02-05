@@ -122,10 +122,14 @@ func (svc *ServiceContext) identifyHandler(c *gin.Context) {
 	var resp struct {
 		Name         string `json:"name"`
 		Descrription string `json:"description"`
+		LogoURL      string `json:"logo_url"`
+		ExternalURL  string `json:"external_url"`
 	}
 
 	resp.Name = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolName"})
 	resp.Descrription = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
+	resp.LogoURL = "https://jmrl.org/images/JMRL.logo.gif"
+	resp.ExternalURL = "https://jmrl.org"
 
 	c.JSON(http.StatusOK, resp)
 }
