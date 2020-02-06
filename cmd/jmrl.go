@@ -35,22 +35,17 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		c.String(http.StatusBadRequest, "Date queries are not supported by JMRL")
 		return
 	}
+	if strings.Contains(req.Query, "identifier:") {
+		log.Printf("ERROR: identifier queries are not supported")
+		c.String(http.StatusBadRequest, "Identifier queries are not supported by JMRL")
+		return
+	}
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
 	// Approach, replace all {} with (),
 	// Remove keyword:, replace subject, author and title with JMRL codes
-	// Identifier is special; it maps to two query terms: barcode and callnumber
-	// replace it with: (b:(val) or c:(val))
 	parsedQ := req.Query
-	for strings.Contains(parsedQ, "identifier:") {
-		iIdx := strings.Index(parsedQ, "identifier:")
-		idx0 := indexAt(parsedQ, "{", iIdx)
-		idx1 := indexAt(parsedQ, "}", idx0)
-		idStr := parsedQ[idx0+1 : idx1]
-		idQ := fmt.Sprintf("(b:%s OR c:%s OR u:%s)", idStr, idStr, idStr)
-		parsedQ = fmt.Sprintf("%s%s%s", parsedQ[0:iIdx], idQ, parsedQ[idx1+1:])
-	}
-	parsedQ = strings.ReplaceAll(parsedQ, "{", "")
-	parsedQ = strings.ReplaceAll(parsedQ, "}", "")
+	parsedQ = strings.ReplaceAll(parsedQ, "{", "(")
+	parsedQ = strings.ReplaceAll(parsedQ, "}", ")")
 	parsedQ = strings.ReplaceAll(parsedQ, "keyword: ", "")
 	parsedQ = strings.ReplaceAll(parsedQ, "title: ", "t:")
 	parsedQ = strings.ReplaceAll(parsedQ, "author: ", "a:")
