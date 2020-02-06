@@ -237,7 +237,7 @@ func indexAt(s string, tgt string, startIdx int) int {
 // Facets placeholder implementaion for a V4 facet POST.
 func (svc *ServiceContext) facets(c *gin.Context) {
 	log.Printf("JMRL facets requested, but JMRL does not support this")
-	c.JSON(http.StatusOK, "")
+	c.JSON(http.StatusNotImplemented, "")
 }
 
 // GetResource will get a JMRL resource by ID
