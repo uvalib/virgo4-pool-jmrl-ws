@@ -53,6 +53,9 @@ func (svc *ServiceContext) search(c *gin.Context) {
 
 	parsedQ = strings.TrimSpace(parsedQ)
 	log.Printf("Parsed query: %s", parsedQ)
+	if parsedQ == "()" {
+		parsedQ = "(*)"
+	}
 	parsedQ = url.QueryEscape(parsedQ)
 	fields := "fields=default,varFields,locations,available"
 	paging := fmt.Sprintf("offset=%d&limit=%d", req.Pagination.Start, 20)
@@ -178,7 +181,7 @@ func getResultFields(bib *JMRLBib) []RecordField {
 	availF := RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "By Request"}
 	vals = getVarField(&bib.VarFields, "856", "u")
 	if len(vals) > 0 {
-		f = RecordField{Name: "freading_url", Type: "url", Label: "Access Online", Value: vals[0]}
+		f = RecordField{Name: "freading_url", Type: "url", Label: "Online access", Value: vals[0]}
 		fields = append(fields, f)
 		if bib.Available {
 			availF.Value = "Online"
