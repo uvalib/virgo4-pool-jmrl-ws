@@ -268,10 +268,8 @@ func (svc *ServiceContext) getResource(c *gin.Context) {
 	}
 
 	var jsonResp struct {
-		HasAvailability bool          `json:"has_availability"`
-		Fields          []RecordField `json:"fields"`
+		Fields []RecordField `json:"fields"`
 	}
-	jsonResp.HasAvailability = false
 	jsonResp.Fields = getResultFields(jmrlBib)
 	c.JSON(http.StatusOK, jsonResp)
 }
