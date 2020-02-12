@@ -119,17 +119,25 @@ func (svc *ServiceContext) identifyHandler(c *gin.Context) {
 	log.Printf("Identify request Accept-Language %s", acceptLang)
 	localizer := i18n.NewLocalizer(svc.I18NBundle, acceptLang)
 
-	var resp struct {
-		Name         string `json:"name"`
-		Descrription string `json:"description"`
-		LogoURL      string `json:"logo_url"`
-		ExternalURL  string `json:"external_url"`
+	type attribute struct {
+		Name      string `json:"name"`
+		Supported bool   `json:"supported"`
+		Value     string `json:"value,omitempty"`
 	}
-
+	type identity struct {
+		Name         string      `json:"name"`
+		Descrription string      `json:"description"`
+		Attributes   []attribute `json:"attributes,omitempty"`
+	}
+	resp := identity{Attributes: make([]attribute, 0)}
 	resp.Name = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolName"})
 	resp.Descrription = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
-	resp.LogoURL = "https://jmrl.org/images/JMRL.logo.gif"
-	resp.ExternalURL = "https://jmrl.org"
+	resp.Attributes = append(resp.Attributes, attribute{Name: "logo_url", Supported: true, Value: "https://jmrl.org/images/JMRL.logo.gif"})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "external_url", Supported: true, Value: "https://jmrl.org"})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "uva_ils", Supported: false})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "facets", Supported: false})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "cover_images", Supported: false})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "course_reserves", Supported: false})
 
 	c.JSON(http.StatusOK, resp)
 }
