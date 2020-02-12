@@ -166,6 +166,12 @@ func getResultFields(bib *JMRLBib) []RecordField {
 		}
 	}
 
+	vals = getVarField(&bib.VarFields, "505", "a")
+	if len(vals) > 0 {
+		f = RecordField{Name: "contents", Type: "contents", Label: "Contents", Value: vals[0], Visibility: "detailed"}
+		fields = append(fields, f)
+	}
+
 	vals = getVarField(&bib.VarFields, "520", "a")
 	if len(vals) > 0 {
 		f = RecordField{Name: "summary", Type: "summary", Label: "Summary", Value: vals[0]}
