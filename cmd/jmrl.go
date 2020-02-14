@@ -46,10 +46,10 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	parsedQ := req.Query
 	parsedQ = strings.ReplaceAll(parsedQ, "{", "(")
 	parsedQ = strings.ReplaceAll(parsedQ, "}", ")")
-	parsedQ = strings.ReplaceAll(parsedQ, "keyword: ", "")
-	parsedQ = strings.ReplaceAll(parsedQ, "title: ", "t:")
-	parsedQ = strings.ReplaceAll(parsedQ, "author: ", "a:")
-	parsedQ = strings.ReplaceAll(parsedQ, "subject: ", "d:")
+	parsedQ = strings.ReplaceAll(parsedQ, "keyword:", "")
+	parsedQ = strings.ReplaceAll(parsedQ, "title:", "t:")
+	parsedQ = strings.ReplaceAll(parsedQ, "author:", "a:")
+	parsedQ = strings.ReplaceAll(parsedQ, "subject:", "d:")
 
 	parsedQ = strings.TrimSpace(parsedQ)
 	log.Printf("Parsed query: %s", parsedQ)

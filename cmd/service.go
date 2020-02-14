@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"net/url"
 	"path/filepath"
 	"strings"
 	"time"
@@ -211,40 +210,6 @@ func (svc *ServiceContext) getAccessToken() error {
 	svc.AccessToken = authResp.AccessToken
 	svc.AccessExpiresAt = time.Now().Add(time.Second * time.Duration(authResp.ExpireSeconds))
 	return nil
-}
-
-// APIPost sends a POST to the JMRL API and returns results a byte array
-func (svc *ServiceContext) apiPost(tgtURL string, values url.Values) ([]byte, *RequestError) {
-	log.Printf("JMRL API POST request: %s", tgtURL)
-	startTime := time.Now()
-	if startTime.After(svc.AccessExpiresAt) {
-		log.Printf("Access token has expired; requesting a new one")
-		authErr := svc.getAccessToken()
-		if authErr != nil {
-			return nil, &RequestError{StatusCode: 401, Message: authErr.Error()}
-		}
-	}
-
-	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
-	postReq, _ := http.NewRequest("POST", tgtURL, nil)
-	postReq.Header.Set("deleted", "false")
-	postReq.Header.Set("suppressed", "false")
-	postReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
-	rawResp, rawErr := client.Do(postReq)
-	resp, err := handleAPIResponse(tgtURL, rawResp, rawErr)
-	elapsedNanoSec := time.Since(startTime)
-	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
-
-	if err != nil {
-		log.Printf("ERROR: Failed response from POST %s %d. Elapsed Time: %d (ms). %s",
-			tgtURL, err.StatusCode, elapsedMS, err.Message)
-	} else {
-		log.Printf("Successful response from POST %s. Elapsed Time: %d (ms)", tgtURL, elapsedMS)
-	}
-	return resp, err
 }
 
 // APIGet sends a GET to the JMRL API and returns results a byte array
