@@ -126,11 +126,13 @@ func (svc *ServiceContext) identifyHandler(c *gin.Context) {
 	type identity struct {
 		Name         string      `json:"name"`
 		Descrription string      `json:"description"`
+		Mode         string      `json:"mode"`
 		Attributes   []attribute `json:"attributes,omitempty"`
 	}
 	resp := identity{Attributes: make([]attribute, 0)}
 	resp.Name = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolName"})
 	resp.Descrription = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
+	resp.Mode = "record"
 	resp.Attributes = append(resp.Attributes, attribute{Name: "logo_url", Supported: true, Value: "https://jmrl.org/images/JMRL.logo.gif"})
 	resp.Attributes = append(resp.Attributes, attribute{Name: "external_url", Supported: true, Value: "https://jmrl.org"})
 	resp.Attributes = append(resp.Attributes, attribute{Name: "uva_ils", Supported: false})
