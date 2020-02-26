@@ -6,6 +6,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/gzip"
+	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -56,6 +57,8 @@ func main() {
 		api.POST("/search/facets", svc.authMiddleware, svc.facets)
 		api.GET("/resource/:id", svc.authMiddleware, svc.getResource)
 	}
+
+	router.Use(static.Serve("/assets", static.LocalFile("./assets", true)))
 
 	portStr := fmt.Sprintf(":%d", cfg.Port)
 	log.Printf("Start service v%s on port %s", version, portStr)
