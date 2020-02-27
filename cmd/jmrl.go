@@ -216,7 +216,11 @@ func getResultFields(bib *JMRLBib) []RecordField {
 	availF := RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "By Request"}
 	vals = getVarField(&bib.VarFields, "856", "u")
 	if len(vals) > 0 {
-		f = RecordField{Name: "access_url", Type: "url", Label: "Online Access", Value: vals[0]}
+		provider := "freading"
+		if strings.Contains(vals[0], "overdrive") {
+			provider = "overdrive"
+		}
+		f = RecordField{Name: "access_url", Type: "url", Label: "Online Access", Value: vals[0], Provider: provider}
 		fields = append(fields, f)
 		if bib.Available {
 			availF.Value = "Online"
