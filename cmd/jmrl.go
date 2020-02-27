@@ -12,6 +12,35 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+type providerDetails struct {
+	Provider    string `json:"provider"`
+	Label       string `json:"label,omitempty"`
+	HomepageURL string `json:"homepage_url,omitempty"`
+	LogoURL     string `json:"logo_url,omitempty"`
+}
+
+type poolProviders struct {
+	Providers []providerDetails `json:"providers"`
+}
+
+// ProvidersHandler returns a list of access_url providers for JMRL
+func (svc *ServiceContext) providersHandler(c *gin.Context) {
+	p := poolProviders{Providers: make([]providerDetails, 0)}
+	p.Providers = append(p.Providers, providerDetails{
+		Provider:    "freading",
+		Label:       "Freading",
+		LogoURL:     "/assets/freading.png",
+		HomepageURL: "https://freading.com/index",
+	})
+	p.Providers = append(p.Providers, providerDetails{
+		Provider:    "overdrive",
+		Label:       "Overdrive",
+		LogoURL:     "/assets/overdrive.png",
+		HomepageURL: "https://www.overdrive.com",
+	})
+	c.JSON(http.StatusOK, p)
+}
+
 // Search accepts a search POST, transforms the query into JMRL format and perfoms the search
 func (svc *ServiceContext) search(c *gin.Context) {
 	log.Printf("JMRL search requested")

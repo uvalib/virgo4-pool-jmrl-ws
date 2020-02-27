@@ -51,6 +51,7 @@ func main() {
 	router.GET("/version", svc.getVersion)
 	router.GET("/healthcheck", svc.healthCheck)
 	router.GET("/identify", svc.identifyHandler)
+	router.GET("/providers", svc.providersHandler)
 	api := router.Group("/api")
 	{
 		api.POST("/search", svc.authMiddleware, svc.search)
