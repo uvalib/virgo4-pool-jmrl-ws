@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"html"
 	"log"
 	"net/http"
 	"net/url"
@@ -157,12 +158,12 @@ func getResultFields(bib *JMRLBib) []RecordField {
 	fields = append(fields, f)
 
 	vals := getVarField(&bib.VarFields, "245", "a")
-	f = RecordField{Name: "title", Type: "title", Label: "Title", Value: vals[0]}
+	f = RecordField{Name: "title", Type: "title", Label: "Title", Value: html.UnescapeString(vals[0])}
 	fields = append(fields, f)
 
 	vals = getVarField(&bib.VarFields, "245", "b")
 	if len(vals) > 0 {
-		f = RecordField{Name: "subtitle", Type: "subtitle", Label: "Subtitle", Value: vals[0]}
+		f = RecordField{Name: "subtitle", Type: "subtitle", Label: "Subtitle", Value: html.UnescapeString(vals[0])}
 		fields = append(fields, f)
 	}
 
@@ -181,7 +182,7 @@ func getResultFields(bib *JMRLBib) []RecordField {
 
 	vals = getVarField(&bib.VarFields, "100", "a")
 	for _, val := range vals {
-		f = RecordField{Name: "author", Type: "author", Label: "Author", Value: val}
+		f = RecordField{Name: "author", Type: "author", Label: "Author", Value: html.UnescapeString(val)}
 		fields = append(fields, f)
 	}
 
@@ -197,13 +198,15 @@ func getResultFields(bib *JMRLBib) []RecordField {
 
 	vals = getVarField(&bib.VarFields, "505", "a")
 	if len(vals) > 0 {
-		f = RecordField{Name: "contents", Type: "contents", Label: "Contents", Value: vals[0], Visibility: "detailed"}
+		f = RecordField{Name: "contents", Type: "contents", Label: "Contents",
+			Value: html.UnescapeString(vals[0]), Visibility: "detailed"}
 		fields = append(fields, f)
 	}
 
 	vals = getVarField(&bib.VarFields, "520", "a")
 	if len(vals) > 0 {
-		f = RecordField{Name: "summary", Type: "summary", Label: "Summary", Value: vals[0]}
+		f = RecordField{Name: "summary", Type: "summary", Label: "Summary",
+			Value: html.UnescapeString(vals[0])}
 		fields = append(fields, f)
 	}
 
