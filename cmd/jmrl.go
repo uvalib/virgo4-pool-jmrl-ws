@@ -62,12 +62,12 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
 	if strings.Contains(req.Query, "date:") {
 		log.Printf("ERROR: date queries are not supported")
-		c.String(http.StatusBadRequest, "Date queries are not supported by JMRL")
+		c.String(http.StatusNotImplemented, "Date queries are not supported by JMRL")
 		return
 	}
 	if strings.Contains(req.Query, "identifier:") {
 		log.Printf("ERROR: identifier queries are not supported")
-		c.String(http.StatusBadRequest, "Identifier queries are not supported by JMRL")
+		c.String(http.StatusNotImplemented, "Identifier queries are not supported by JMRL")
 		return
 	}
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
