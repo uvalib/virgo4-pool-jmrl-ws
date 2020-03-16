@@ -62,12 +62,12 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
 	if strings.Contains(req.Query, "date:") {
 		log.Printf("ERROR: date queries are not supported")
-		c.String(http.StatusNotImplemented, "Date queries are not supported by JMRL")
+		c.String(http.StatusNotImplemented, "Date queries are not supported")
 		return
 	}
 	if strings.Contains(req.Query, "identifier:") {
 		log.Printf("ERROR: identifier queries are not supported")
-		c.String(http.StatusNotImplemented, "Identifier queries are not supported by JMRL")
+		c.String(http.StatusNotImplemented, "Identifier queries are not supported")
 		return
 	}
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
@@ -282,7 +282,7 @@ func indexAt(s string, tgt string, startIdx int) int {
 // Facets placeholder implementaion for a V4 facet POST.
 func (svc *ServiceContext) facets(c *gin.Context) {
 	log.Printf("JMRL facets requested, but JMRL does not support this")
-	c.JSON(http.StatusNotImplemented, "")
+	c.JSON(http.StatusNotImplemented, "Facets are not supported")
 }
 
 // GetResource will get a JMRL resource by ID
