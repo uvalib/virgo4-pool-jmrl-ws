@@ -11,6 +11,7 @@ type ServiceConfig struct {
 	APIKey    string
 	APISecret string
 	Port      int
+	JWTKey    string
 }
 
 // LoadConfiguration will load the service configuration from env/cmdline
@@ -22,6 +23,7 @@ func LoadConfiguration() *ServiceConfig {
 	flag.StringVar(&cfg.API, "api", "", "JRML API URL")
 	flag.StringVar(&cfg.APIKey, "apikey", "", "Key you access the JRML API")
 	flag.StringVar(&cfg.APISecret, "apisecret", "", "Secret to access the JRML API")
+	flag.StringVar(&cfg.JWTKey, "jwtkey", "", "JWT signature key")
 
 	flag.Parse()
 
@@ -33,6 +35,9 @@ func LoadConfiguration() *ServiceConfig {
 	}
 	if cfg.APISecret == "" {
 		log.Fatal("Parameter -apisecret is required")
+	}
+	if cfg.JWTKey == "" {
+		log.Fatal("jwtkey param is required")
 	}
 
 	return &cfg
