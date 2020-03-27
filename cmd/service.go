@@ -141,6 +141,7 @@ func (svc *ServiceContext) identifyHandler(c *gin.Context) {
 	resp.Attributes = append(resp.Attributes, attribute{Name: "facets", Supported: false})
 	resp.Attributes = append(resp.Attributes, attribute{Name: "cover_images", Supported: false})
 	resp.Attributes = append(resp.Attributes, attribute{Name: "course_reserves", Supported: false})
+	resp.Attributes = append(resp.Attributes, attribute{Name: "sorting", Supported: false})
 
 	c.JSON(http.StatusOK, resp)
 }
