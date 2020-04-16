@@ -138,7 +138,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	fields := make([]v4api.RecordField, 0)
 	f := v4api.RecordField{Name: "id", Type: "identifier", Label: "Identifier",
-		Value: bib.ID, Display: "optional"}
+		Value: bib.ID, Display: "optional", RISCode: "ID"}
 	fields = append(fields, f)
 
 	for _, loc := range bib.Locations {
@@ -147,43 +147,43 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	}
 
 	f = v4api.RecordField{Name: "publication_date", Type: "publication_date", Label: "Publication Date",
-		Value: fmt.Sprintf("%d", bib.PublishYear)}
+		Value: fmt.Sprintf("%d", bib.PublishYear), RISCode: "PY"}
 	fields = append(fields, f)
 
 	f = v4api.RecordField{Name: "format", Type: "format", Label: "Format",
-		Value: bib.Type.Value}
+		Value: bib.Type.Value, RISCode: "TY"}
 	fields = append(fields, f)
 
 	f = v4api.RecordField{Name: "language", Type: "language", Label: "Language",
-		Value: bib.Language.Value, Visibility: "detailed"}
+		Value: bib.Language.Value, Visibility: "detailed", RISCode: "LA"}
 	fields = append(fields, f)
 
 	vals := getVarField(&bib.VarFields, "245", "a")
-	f = v4api.RecordField{Name: "title", Type: "title", Label: "Title", Value: html.UnescapeString(vals[0])}
+	f = v4api.RecordField{Name: "title", Type: "title", Label: "Title", Value: html.UnescapeString(vals[0]), RISCode: "T1"}
 	fields = append(fields, f)
 
 	vals = getVarField(&bib.VarFields, "245", "b")
 	if len(vals) > 0 {
-		f = v4api.RecordField{Name: "subtitle", Type: "subtitle", Label: "Subtitle", Value: html.UnescapeString(vals[0])}
+		f = v4api.RecordField{Name: "subtitle", Type: "subtitle", Label: "Subtitle", Value: html.UnescapeString(vals[0]), RISCode: "T2"}
 		fields = append(fields, f)
 	}
 
 	vals = getVarField(&bib.VarFields, "020", "a")
 	for _, val := range vals {
-		f = v4api.RecordField{Name: "isbn", Type: "isbn", Label: "ISBN", Value: val, Visibility: "detailed"}
+		f = v4api.RecordField{Name: "isbn", Type: "isbn", Label: "ISBN", Value: val, Visibility: "detailed", RISCode: "SN"}
 		fields = append(fields, f)
 	}
 
 	vals = getVarField(&bib.VarFields, "092", "")
 	for _, val := range vals {
 		f = v4api.RecordField{Name: "call_number", Type: "call_number", Label: "Call Number",
-			Value: val, Visibility: "detailed"}
+			Value: val, Visibility: "detailed", RISCode: "CN"}
 		fields = append(fields, f)
 	}
 
 	vals = getVarField(&bib.VarFields, "100", "a")
 	for _, val := range vals {
-		f = v4api.RecordField{Name: "author", Type: "author", Label: "Author", Value: html.UnescapeString(val)}
+		f = v4api.RecordField{Name: "author", Type: "author", Label: "Author", Value: html.UnescapeString(val), RISCode: "AU"}
 		fields = append(fields, f)
 	}
 
@@ -192,7 +192,7 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	for _, id := range marcIDs {
 		vals = getVarField(&bib.VarFields, id, "a")
 		for _, val := range vals {
-			f = v4api.RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed"}
+			f = v4api.RecordField{Name: "subject", Type: "subject", Label: "Subject", Value: val, Visibility: "detailed", RISCode: "KW"}
 			fields = append(fields, f)
 		}
 	}
@@ -207,13 +207,14 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	vals = getVarField(&bib.VarFields, "520", "a")
 	if len(vals) > 0 {
 		f = v4api.RecordField{Name: "summary", Type: "summary", Label: "Summary",
-			Value: html.UnescapeString(vals[0])}
+			Value: html.UnescapeString(vals[0]), RISCode: "AB"}
 		fields = append(fields, f)
 	}
 
 	vals = getVarField(&bib.VarFields, "776", "d")
 	if len(vals) > 0 {
-		f = v4api.RecordField{Name: "published", Type: "published", Label: "Published", Value: vals[0], Visibility: "detailed"}
+		f = v4api.RecordField{Name: "published", Type: "published", Label: "Published", Value: vals[0],
+			Visibility: "detailed", RISCode: "PB"}
 		fields = append(fields, f)
 	}
 
