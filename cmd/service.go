@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/uvalib/virgo4-api/v4api"
+
 	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
@@ -120,28 +122,17 @@ func (svc *ServiceContext) identifyHandler(c *gin.Context) {
 	log.Printf("Identify request Accept-Language %s", acceptLang)
 	localizer := i18n.NewLocalizer(svc.I18NBundle, acceptLang)
 
-	type attribute struct {
-		Name      string `json:"name"`
-		Supported bool   `json:"supported"`
-		Value     string `json:"value,omitempty"`
-	}
-	type identity struct {
-		Name         string      `json:"name"`
-		Descrription string      `json:"description"`
-		Mode         string      `json:"mode"`
-		Attributes   []attribute `json:"attributes,omitempty"`
-	}
-	resp := identity{Attributes: make([]attribute, 0)}
+	resp := v4api.PoolIdentity{Attributes: make([]v4api.PoolAttribute, 0)}
 	resp.Name = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolName"})
-	resp.Descrription = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
+	resp.Description = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
 	resp.Mode = "record"
-	resp.Attributes = append(resp.Attributes, attribute{Name: "logo_url", Supported: true, Value: "/assets/jmrl_logo.svg"})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "external_url", Supported: true, Value: "https://jmrl.org"})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "uva_ils", Supported: false})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "facets", Supported: false})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "cover_images", Supported: false})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "course_reserves", Supported: false})
-	resp.Attributes = append(resp.Attributes, attribute{Name: "sorting", Supported: false})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "logo_url", Supported: true, Value: "/assets/jmrl_logo.svg"})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "external_url", Supported: true, Value: "https://jmrl.org"})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "uva_ils", Supported: false})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "facets", Supported: false})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "cover_images", Supported: false})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "course_reserves", Supported: false})
+	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "sorting", Supported: false})
 
 	c.JSON(http.StatusOK, resp)
 }
