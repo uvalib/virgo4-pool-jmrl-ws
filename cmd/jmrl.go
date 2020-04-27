@@ -240,6 +240,9 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 }
 
 func stripTrailingData(value string) string {
+	if value == "" {
+		return ""
+	}
 	lastChar := string(value[len(value)-1])
 	if lastChar == ":" || lastChar == "/" || lastChar == "." {
 		value = value[0 : len(value)-1]
