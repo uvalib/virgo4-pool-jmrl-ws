@@ -141,7 +141,8 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	fields = append(fields, f)
 
 	for _, loc := range bib.Locations {
-		f = v4api.RecordField{Name: "location", Type: "location", Label: "Location", Value: loc.Name}
+		f = v4api.RecordField{Name: "location", Type: "location", Label: "Location",
+			Value: fmt.Sprintf("Jefferson-Madison Regional Library - %s", loc.Name)}
 		fields = append(fields, f)
 	}
 
@@ -217,7 +218,7 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 		fields = append(fields, f)
 	}
 
-	availF := v4api.RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "By Request"}
+	availF := v4api.RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "Checked out"}
 	vals = getVarField(&bib.VarFields, "856", "u")
 	if len(vals) > 0 {
 		provider := "freading"
@@ -231,7 +232,7 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 		}
 	} else {
 		if bib.Available {
-			availF.Value = "On Shelf"
+			availF.Value = "On shelf"
 		}
 	}
 	fields = append(fields, availF)
