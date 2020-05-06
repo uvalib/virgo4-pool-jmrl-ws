@@ -129,7 +129,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	}
 
 	v4Resp.StatusCode = http.StatusOK
-	v4Resp.StatusMessage = "OK"
 	v4Resp.ContentLanguage = acceptLang
 	c.JSON(http.StatusOK, v4Resp)
 }
