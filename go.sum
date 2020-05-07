@@ -142,6 +142,10 @@ github.com/uvalib/virgo4-api v0.0.0-20200506232859-791289894050 h1:Q5x3dvgN608DL
 github.com/uvalib/virgo4-api v0.0.0-20200506232859-791289894050/go.mod h1:p+LmQBQahBom6DErthL8iGZU6NgRJ9aN2wM7EE6VBSE=
 github.com/uvalib/virgo4-api v0.0.0-20200507002343-340a6a84c8db h1:YRuY54QCfFRTbganFrowRugkKZIHaQvajgM/y/QVHX8=
 github.com/uvalib/virgo4-api v0.0.0-20200507002343-340a6a84c8db/go.mod h1:p+LmQBQahBom6DErthL8iGZU6NgRJ9aN2wM7EE6VBSE=
+github.com/uvalib/virgo4-api v0.0.0-20200507003910-1a9729ebc158 h1:7+fr5Wtsxu98dzLTDnPLr7NnZbKiG6FhPlD1O6fkpzc=
+github.com/uvalib/virgo4-api v0.0.0-20200507003910-1a9729ebc158/go.mod h1:p+LmQBQahBom6DErthL8iGZU6NgRJ9aN2wM7EE6VBSE=
+github.com/uvalib/virgo4-api v0.0.0-20200507004410-e2b3fa179ae3 h1:B2PpP27O31JOtehR0/0NVqZp7yiDPgPZ8mnQbDqzJfg=
+github.com/uvalib/virgo4-api v0.0.0-20200507004410-e2b3fa179ae3/go.mod h1:p+LmQBQahBom6DErthL8iGZU6NgRJ9aN2wM7EE6VBSE=
 github.com/uvalib/virgo4-jwt v0.0.0-20200427141047-8e5c1f68bc8f h1:+jcp7eZKpxiR4Rl5m7BHiNfTy1Woej9HO1JgsAZR/H8=
 github.com/uvalib/virgo4-jwt v0.0.0-20200427141047-8e5c1f68bc8f/go.mod h1:pPSHBTeq1RftpQGB6H1GaihwPZtl5RpGCEeov0eH05Y=
 github.com/zsais/go-gin-prometheus v0.1.0 h1:bkLv1XCdzqVgQ36ScgRi09MA2UC1t3tAB6nsfErsGO4=
