@@ -116,7 +116,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		return
 	}
 
-	v4Resp.Pagination = &v4api.Pagination{Start: jmrlResp.Start, Total: jmrlResp.Total,
+	v4Resp.Pagination = v4api.Pagination{Start: jmrlResp.Start, Total: jmrlResp.Total,
 		Rows: jmrlResp.Count}
 	for _, entry := range jmrlResp.Entries {
 		bib := entry.Bib
