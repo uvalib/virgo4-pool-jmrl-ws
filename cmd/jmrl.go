@@ -145,8 +145,12 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 	fields = append(fields, f)
 
 	for _, loc := range bib.Locations {
+		val := fmt.Sprintf("Jefferson-Madison Regional Library - %s", loc.Name)
+		if loc.Name == "none" {
+			val = "Jefferson-Madison Regional Library"
+		}
 		f = v4api.RecordField{Name: "location", Type: "location", Label: "Location",
-			Value: fmt.Sprintf("Jefferson-Madison Regional Library - %s", loc.Name)}
+			Value: val}
 		fields = append(fields, f)
 	}
 
