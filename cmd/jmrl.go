@@ -82,11 +82,17 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	parsedQ = strings.ReplaceAll(parsedQ, "author:", "a:")
 	parsedQ = strings.ReplaceAll(parsedQ, "subject:", "d:")
 
+	// map unsupported fields to fine inventory number, which they won't match
+	// this preserves the AND/OR/NOT behavior
+	parsedQ = strings.ReplaceAll(parsedQ, "filter:", "v:")
+	parsedQ = strings.ReplaceAll(parsedQ, "published:", "v:")
+
 	parsedQ = strings.TrimSpace(parsedQ)
 	log.Printf("Parsed query: %s", parsedQ)
 	if parsedQ == "()" {
 		parsedQ = "(*)"
 	}
+
 	parsedQ = url.QueryEscape(parsedQ)
 	fields := "fields=default,varFields,locations,available"
 	paging := fmt.Sprintf("offset=%d&limit=%d", req.Pagination.Start, 20)
