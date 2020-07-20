@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -30,6 +31,7 @@ type ServiceContext struct {
 	AccessExpiresAt time.Time
 	JWTKey          string
 	I18NBundle      *i18n.Bundle
+	HTTPClient      *http.Client
 }
 
 // RequestError contains http status code and message for and API request
@@ -44,6 +46,21 @@ type RequestError struct {
 func InitializeService(version string, cfg *ServiceConfig) *ServiceContext {
 	log.Printf("Initializing Service")
 	svc := ServiceContext{Version: version, API: cfg.API, JWTKey: cfg.JWTKey}
+
+	log.Printf("Create HTTP Client")
+	defaultTransport := &http.Transport{
+		Dial: (&net.Dialer{
+			Timeout:   2 * time.Second,
+			KeepAlive: 600 * time.Second,
+		}).Dial,
+		TLSHandshakeTimeout: 2 * time.Second,
+		MaxIdleConns:        100,
+		MaxIdleConnsPerHost: 100,
+	}
+	svc.HTTPClient = &http.Client{
+		Transport: defaultTransport,
+		Timeout:   5 * time.Second,
+	}
 
 	// Create the auth token from base64 encoding of key:secret. Per JRML docs
 	// https://techdocs.iii.com/sierraapi/Content/zTutorials/tutAuthenticate.htm
@@ -91,17 +108,15 @@ func (svc *ServiceContext) healthCheck(c *gin.Context) {
 	}
 	hcMap := make(map[string]hcResp)
 
-	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
-
 	idx := strings.LastIndex(svc.API, "/")
 	baseURL := svc.API[0:idx]
 	authURL := fmt.Sprintf("%s/about", baseURL)
 	postReq, _ := http.NewRequest("GET", authURL, nil)
 	postReq.Header.Set("Accept", "application/json")
-	resp, postErr := client.Do(postReq)
+	resp, postErr := svc.HTTPClient.Do(postReq)
+	if resp != nil {
+		defer resp.Body.Close()
+	}
 	if postErr != nil {
 		hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
 	} else if resp.StatusCode != 200 {
@@ -185,14 +200,10 @@ func (svc *ServiceContext) authMiddleware(c *gin.Context) {
 func (svc *ServiceContext) getAccessToken() error {
 	log.Printf("Get JMRL access token")
 	startTime := time.Now()
-	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
 	authURL := fmt.Sprintf("%s/token", svc.API)
 	postReq, _ := http.NewRequest("POST", authURL, nil)
 	postReq.Header.Set("Authorization", fmt.Sprintf("Basic %s", svc.AuthToken))
-	postResp, postErr := client.Do(postReq)
+	postResp, postErr := svc.HTTPClient.Do(postReq)
 	respBytes, respErr := handleAPIResponse(authURL, postResp, postErr)
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
@@ -238,15 +249,11 @@ func (svc *ServiceContext) apiGet(tgtURL string) ([]byte, *RequestError) {
 		}
 	}
 
-	timeout := time.Duration(5 * time.Second)
-	client := http.Client{
-		Timeout: timeout,
-	}
 	getReq, _ := http.NewRequest("GET", tgtURL, nil)
 	getReq.Header.Set("deleted", "false")
 	getReq.Header.Set("suppressed", "false")
 	getReq.Header.Set("Authorization", fmt.Sprintf("Bearer %s", svc.AccessToken))
-	rawResp, rawErr := client.Do(getReq)
+	rawResp, rawErr := svc.HTTPClient.Do(getReq)
 	resp, err := handleAPIResponse(tgtURL, rawResp, rawErr)
 	elapsedNanoSec := time.Since(startTime)
 	elapsedMS := int64(elapsedNanoSec / time.Millisecond)
