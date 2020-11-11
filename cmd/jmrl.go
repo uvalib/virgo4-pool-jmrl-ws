@@ -71,6 +71,11 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		c.String(http.StatusNotImplemented, "Identifier queries are not supported")
 		return
 	}
+	if strings.Contains(req.Query, "journal_title:") {
+		log.Printf("ERROR: journal title queries are not supported")
+		c.String(http.StatusNotImplemented, "Journal Title queries are not supported")
+		return
+	}
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
 	// Approach, replace all {} with (),
 	// Remove keyword:, replace subject, author and title with JMRL codes
