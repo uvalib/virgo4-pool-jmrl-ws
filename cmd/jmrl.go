@@ -12,6 +12,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/uvalib/virgo4-api/v4api"
+	"github.com/uvalib/virgo4-parser/v4parser"
 )
 
 type providerDetails struct {
@@ -58,9 +59,17 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		acceptLang = "en-US"
 	}
 
-	// dates are not suported and will cause no results to be returned
-	// Fail this query with a bad request and info about the reason
+	// make sure the query is well formed
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
+	valid, errors := v4parser.ValidateWithTimeout(req.Query, 10)
+	if valid == false {
+		log.Printf("ERROR: Query [%s] is not valid: %s", req.Query, errors)
+		c.String(http.StatusBadRequest, "Malformed search")
+		return
+	}
+
+	// date, identifier and journal_title are not suported.
+	// Fail these with a bad request and info about the reason
 	if strings.Contains(req.Query, "date:") {
 		log.Printf("ERROR: date queries are not supported")
 		c.String(http.StatusNotImplemented, "Date queries are not supported")
