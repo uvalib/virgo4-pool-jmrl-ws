@@ -68,7 +68,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		return
 	}
 
-	// date, identifier and journal_title are not suported.
+	// date, identifier, journal_title, and filter are not suported.
 	// Fail these with a bad request and info about the reason
 	if strings.Contains(req.Query, "date:") {
 		log.Printf("ERROR: date queries are not supported")
@@ -85,6 +85,11 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		c.String(http.StatusNotImplemented, "Journal Title queries are not supported")
 		return
 	}
+	if strings.Contains(req.Query, "filter:") {
+		log.Printf("ERROR: filter queries are not supported")
+		c.String(http.StatusNotImplemented, "Filter queries are not supported")
+		return
+	}
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
 	// Approach, replace all {} with (),
 	// Remove keyword:, replace subject, author and title with JMRL codes
@@ -98,7 +103,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 
 	// map unsupported fields to fine inventory number, which they won't match
 	// this preserves the AND/OR/NOT behavior
-	parsedQ = strings.ReplaceAll(parsedQ, "filter:", "v:")
 	parsedQ = strings.ReplaceAll(parsedQ, "published:", "v:")
 
 	parsedQ = strings.TrimSpace(parsedQ)
