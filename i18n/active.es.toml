@@ -1,7 +1,5 @@
 [PoolName]
-desc = "The display name for the JMRL pool"
-other = "JMRL"
+other = "Biblioteca Pública JMRL"
 
 [PoolDescription]
-desc = "The detailed description for the JMRL pool"
 other = "Materiales del sistema de bibliotecas públicas de Charlottesville, Jefferson-Madison Regional Library."
