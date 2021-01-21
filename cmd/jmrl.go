@@ -59,6 +59,18 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		acceptLang = "en-US"
 	}
 
+	// JMRL does not support filtering. If a filter is specified in the search, return 0 hits
+	if len(req.Filters) > 0 || strings.Contains(req.Query, "filter:") {
+		log.Printf("Filters specified in search, return no matches")
+		v4Resp := &v4api.PoolResult{ElapsedMS: 0, Confidence: "low"}
+		v4Resp.Groups = make([]v4api.Group, 0)
+		v4Resp.Pagination = v4api.Pagination{Start: 0, Total: 0, Rows: 0}
+		v4Resp.StatusCode = http.StatusOK
+		v4Resp.ContentLanguage = acceptLang
+		c.JSON(http.StatusOK, v4Resp)
+		return
+	}
+
 	// make sure the query is well formed
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
 	valid, errors := v4parser.ValidateWithTimeout(req.Query, 10)
@@ -85,11 +97,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		c.String(http.StatusNotImplemented, "Journal Title queries are not supported")
 		return
 	}
-	if strings.Contains(req.Query, "filter:") {
-		log.Printf("ERROR: filter queries are not supported")
-		c.String(http.StatusNotImplemented, "Filter queries are not supported")
-		return
-	}
+
 	// EX: keyword: {(calico OR "tortoise shell") AND cats}
 	// Approach, replace all {} with (),
 	// Remove keyword:, replace subject, author and title with JMRL codes
