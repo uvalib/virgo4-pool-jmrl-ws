@@ -59,6 +59,15 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		acceptLang = "en-US"
 	}
 
+	// make sure the query is well formed
+	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
+	valid, errors := v4parser.ValidateWithTimeout(req.Query, 10)
+	if valid == false {
+		log.Printf("ERROR: Query [%s] is not valid: %s", req.Query, errors)
+		c.String(http.StatusBadRequest, "Malformed search")
+		return
+	}
+
 	// JMRL does not support filtering. If a filter is specified in the search, return 0 hits
 	if len(req.Filters) > 0 || strings.Contains(req.Query, "filter:") {
 		log.Printf("Filters specified in search, return no matches")
@@ -68,15 +77,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		v4Resp.StatusCode = http.StatusOK
 		v4Resp.ContentLanguage = acceptLang
 		c.JSON(http.StatusOK, v4Resp)
-		return
-	}
-
-	// make sure the query is well formed
-	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
-	valid, errors := v4parser.ValidateWithTimeout(req.Query, 10)
-	if valid == false {
-		log.Printf("ERROR: Query [%s] is not valid: %s", req.Query, errors)
-		c.String(http.StatusBadRequest, "Malformed search")
 		return
 	}
 
