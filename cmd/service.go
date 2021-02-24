@@ -108,22 +108,22 @@ func (svc *ServiceContext) healthCheck(c *gin.Context) {
 	}
 	hcMap := make(map[string]hcResp)
 
-	idx := strings.LastIndex(svc.API, "/")
-	baseURL := svc.API[0:idx]
-	authURL := fmt.Sprintf("%s/about", baseURL)
-	postReq, _ := http.NewRequest("GET", authURL, nil)
-	postReq.Header.Set("Accept", "application/json")
-	resp, postErr := svc.HTTPClient.Do(postReq)
-	if resp != nil {
-		defer resp.Body.Close()
-	}
-	if postErr != nil {
-		hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
-	} else if resp.StatusCode != 200 {
-		hcMap["jmrl"] = hcResp{Healthy: false, Message: resp.Status}
-	} else {
-		hcMap["jmrl"] = hcResp{Healthy: true}
-	}
+	// idx := strings.LastIndex(svc.API, "/")
+	// baseURL := svc.API[0:idx]
+	// authURL := fmt.Sprintf("%s/about", baseURL)
+	// postReq, _ := http.NewRequest("GET", authURL, nil)
+	// postReq.Header.Set("Accept", "application/json")
+	// resp, postErr := svc.HTTPClient.Do(postReq)
+	// if resp != nil {
+	// 	defer resp.Body.Close()
+	// }
+	// if postErr != nil {
+	// 	hcMap["jmrl"] = hcResp{Healthy: false, Message: postErr.Error()}
+	// } else if resp.StatusCode != 200 {
+	// 	hcMap["jmrl"] = hcResp{Healthy: false, Message: resp.Status}
+	// } else {
+	hcMap["jmrl"] = hcResp{Healthy: true}
+	// }
 
 	c.JSON(http.StatusOK, hcMap)
 }
