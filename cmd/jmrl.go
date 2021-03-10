@@ -61,7 +61,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 
 	// make sure the query is well formed
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
-	valid, errors := v4parser.ValidateWithTimeout(req.Query, 10)
+	valid, errors := v4parser.Validate(req.Query)
 	if valid == false {
 		log.Printf("ERROR: Query [%s] is not valid: %s", req.Query, errors)
 		c.String(http.StatusBadRequest, "Malformed search")
