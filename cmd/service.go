@@ -231,7 +231,8 @@ func (svc *ServiceContext) getAccessToken() error {
 
 	log.Printf("Authentication successful, expires in %d seconds", authResp.ExpireSeconds)
 	svc.AccessToken = authResp.AccessToken
-	svc.AccessExpiresAt = time.Now().Add(time.Second * time.Duration(authResp.ExpireSeconds))
+	// flag expire time 15mins before it actually expires to catch any edge timing cases (hopefully)
+	svc.AccessExpiresAt = time.Now().Add(time.Second * time.Duration(authResp.ExpireSeconds-60*15))
 	return nil
 }
 
