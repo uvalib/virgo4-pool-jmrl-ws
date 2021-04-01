@@ -14,7 +14,7 @@ import (
 )
 
 // Version of the service
-const version = "1.0.1"
+const version = "1.1.0"
 
 /**
  * MAIN
@@ -53,7 +53,7 @@ func main() {
 	router.GET("/identify", svc.identifyHandler)
 	api := router.Group("/api")
 	{
-		api.GET("/providers", svc.authMiddleware, svc.providersHandler)
+		api.GET("/providers", svc.providersHandler)
 		api.POST("/search", svc.authMiddleware, svc.search)
 		api.POST("/search/facets", svc.authMiddleware, svc.facets)
 		api.GET("/resource/:id", svc.authMiddleware, svc.getResource)
