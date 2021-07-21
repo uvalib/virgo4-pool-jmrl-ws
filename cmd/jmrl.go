@@ -258,24 +258,26 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 		fields = append(fields, f)
 	}
 
-	availF := v4api.RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "Checked Out"}
-	vals = getVarField(&bib.VarFields, "856", "u")
-	if len(vals) > 0 {
-		provider := "freading"
-		if strings.Contains(vals[0], "overdrive") {
-			provider = "overdrive"
+	/*
+		availF := v4api.RecordField{Name: "availability", Type: "availability", Label: "Availability", Value: "Checked Out"}
+		vals = getVarField(&bib.VarFields, "856", "u")
+		if len(vals) > 0 {
+			provider := "freading"
+			if strings.Contains(vals[0], "overdrive") {
+				provider = "overdrive"
+			}
+			f = v4api.RecordField{Name: "access_url", Type: "url", Label: "Online Access", Value: vals[0], Provider: provider}
+			fields = append(fields, f)
+			if bib.Available {
+				availF.Value = "Online"
+			}
+		} else {
+			if bib.Available {
+				availF.Value = "On Shelf Now"
+			}
 		}
-		f = v4api.RecordField{Name: "access_url", Type: "url", Label: "Online Access", Value: vals[0], Provider: provider}
-		fields = append(fields, f)
-		if bib.Available {
-			availF.Value = "Online"
-		}
-	} else {
-		if bib.Available {
-			availF.Value = "On Shelf Now"
-		}
-	}
-	fields = append(fields, availF)
+		fields = append(fields, availF)
+	*/
 	return fields
 }
 
