@@ -8,13 +8,10 @@ import (
 	"github.com/gin-contrib/gzip"
 	"github.com/gin-gonic/contrib/static"
 	"github.com/gin-gonic/gin"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	ginprometheus "github.com/zsais/go-gin-prometheus"
 )
 
 // Version of the service
-const version = "1.1.0"
+const version = "1.1.1"
 
 /**
  * MAIN
@@ -36,15 +33,19 @@ func main() {
 	corsCfg.AllowCredentials = true
 	corsCfg.AddAllowHeaders("Authorization")
 	router.Use(cors.New(corsCfg))
-	p := ginprometheus.NewPrometheus("gin")
+
+	//
+	// we are removing Prometheus support for now
+	//
+	//p := ginprometheus.NewPrometheus("gin")
 
 	// roundabout setup of /metrics endpoint to avoid double-gzip of response
-	router.Use(p.HandlerFunc())
-	h := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{DisableCompression: true}))
+	//router.Use(p.HandlerFunc())
+	//h := promhttp.InstrumentMetricHandler(prometheus.DefaultRegisterer, promhttp.HandlerFor(prometheus.DefaultGatherer, promhttp.HandlerOpts{DisableCompression: true}))
 
-	router.GET(p.MetricsPath, func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
-	})
+	//router.GET(p.MetricsPath, func(c *gin.Context) {
+	//	h.ServeHTTP(c.Writer, c.Request)
+	//})
 
 	router.GET("/", svc.getVersion)
 	router.GET("/favicon.ico", svc.ignoreFavicon)
