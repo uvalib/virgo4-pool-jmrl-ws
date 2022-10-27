@@ -89,20 +89,21 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		return
 	}
 
-	// date, identifier, journal_title, and filter are not suported.
+	// date, identifier, journal_title, and filter are not supported.
 	// Fail these with a bad request and info about the reason
+	// We mark these messages as WARNING's because they are expected
 	if strings.Contains(req.Query, "date:") {
-		log.Printf("ERROR: date queries are not supported")
+		log.Printf("WARNING: date queries are not supported")
 		c.String(http.StatusNotImplemented, "Date queries are not supported")
 		return
 	}
 	if strings.Contains(req.Query, "identifier:") {
-		log.Printf("ERROR: identifier queries are not supported")
+		log.Printf("WARNING: identifier queries are not supported")
 		c.String(http.StatusNotImplemented, "Identifier queries are not supported")
 		return
 	}
 	if strings.Contains(req.Query, "journal_title:") {
-		log.Printf("ERROR: journal title queries are not supported")
+		log.Printf("WARNING: journal title queries are not supported")
 		c.String(http.StatusNotImplemented, "Journal Title queries are not supported")
 		return
 	}
@@ -302,7 +303,7 @@ func stripTrailingData(value string) string {
 	return value
 }
 
-/// helper to get an array of MARC values for the target element
+// helper to get an array of MARC values for the target element
 func getVarField(varFields *[]JMRLVarFields, marc string, subfield string) []string {
 	out := make([]string, 0)
 	for _, field := range *varFields {
