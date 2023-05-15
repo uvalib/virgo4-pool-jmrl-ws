@@ -23,8 +23,7 @@ require (
 	github.com/uvalib/virgo4-jwt v1.0.0
 	github.com/uvalib/virgo4-parser v0.0.0-20220606190657-5119d778d14a
 	golang.org/x/arch v0.3.0 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/crypto v0.9.0 // indirect
 	golang.org/x/text v0.9.0
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
