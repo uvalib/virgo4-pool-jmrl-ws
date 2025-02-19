@@ -15,11 +15,9 @@ import (
 
 	"github.com/uvalib/virgo4-api/v4api"
 
-	"github.com/BurntSushi/toml"
 	"github.com/gin-gonic/gin"
 	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/uvalib/virgo4-jwt/v4jwt"
-	"golang.org/x/text/language"
 )
 
 // ServiceContext contains common data used by all handlers
@@ -70,12 +68,6 @@ func InitializeService(version string, cfg *ServiceConfig) *ServiceContext {
 
 	log.Printf("Authenticate with JMRL API")
 	svc.getAccessToken()
-
-	log.Printf("Init localization")
-	svc.I18NBundle = i18n.NewBundle(language.English)
-	svc.I18NBundle.RegisterUnmarshalFunc("toml", toml.Unmarshal)
-	svc.I18NBundle.MustLoadMessageFile("./i18n/active.en.toml")
-	svc.I18NBundle.MustLoadMessageFile("./i18n/active.es.toml")
 
 	return &svc
 }
@@ -130,16 +122,9 @@ func (svc *ServiceContext) healthCheck(c *gin.Context) {
 
 // IdentifyHandler returns localized identity information for this pool
 func (svc *ServiceContext) identifyHandler(c *gin.Context) {
-	acceptLang := strings.Split(c.GetHeader("Accept-Language"), ",")[0]
-	if acceptLang == "" {
-		acceptLang = "en-US"
-	}
-	log.Printf("Identify request Accept-Language %s", acceptLang)
-	localizer := i18n.NewLocalizer(svc.I18NBundle, acceptLang)
-
 	resp := v4api.PoolIdentity{Attributes: make([]v4api.PoolAttribute, 0)}
-	resp.Name = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolName"})
-	resp.Description = localizer.MustLocalize(&i18n.LocalizeConfig{MessageID: "PoolDescription"})
+	resp.Name = "JMRL Public Library"
+	resp.Description = "Materials from Charlottesville's public library system, Jefferson-Madison Regional Library."
 	resp.Mode = "record"
 
 	resp.Attributes = append(resp.Attributes, v4api.PoolAttribute{Name: "logo_url", Supported: true, Value: "/assets/jmrl_logo.svg"})

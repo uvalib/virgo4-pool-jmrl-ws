@@ -5,7 +5,6 @@ go 1.21.0
 toolchain go1.23.4
 
 require (
-	github.com/BurntSushi/toml v1.4.0
 	github.com/gin-contrib/cors v1.7.3
 	github.com/gin-contrib/gzip v1.2.2
 	github.com/gin-gonic/contrib v0.0.0-20250113154928-93b827325fec
@@ -14,7 +13,6 @@ require (
 	github.com/uvalib/virgo4-api v0.0.0-20241126213111-b647424688f9
 	github.com/uvalib/virgo4-jwt v1.2.1
 	github.com/uvalib/virgo4-parser v0.0.0-20220606190657-5119d778d14a
-	golang.org/x/text v0.22.0
 )
 
 require (
@@ -44,6 +42,7 @@ require (
 	golang.org/x/crypto v0.33.0 // indirect
 	golang.org/x/net v0.35.0 // indirect
 	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	google.golang.org/protobuf v1.36.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

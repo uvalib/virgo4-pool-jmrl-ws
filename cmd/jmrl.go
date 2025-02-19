@@ -154,7 +154,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		log.Printf("ERROR: Invalid response from JMRL API: %s", respErr.Error())
 		v4Resp.StatusCode = http.StatusInternalServerError
 		v4Resp.StatusMessage = respErr.Error()
-		c.JSON(err.StatusCode, v4Resp)
+		c.JSON(http.StatusInternalServerError, v4Resp)
 		return
 	}
 
