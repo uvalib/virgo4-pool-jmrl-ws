@@ -54,11 +54,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		return
 	}
 
-	acceptLang := strings.Split(c.GetHeader("Accept-Language"), ",")[0]
-	if acceptLang == "" {
-		acceptLang = "en-US"
-	}
-
 	// make sure the query is well formed
 	log.Printf("Raw query: %s, %+v", req.Query, req.Pagination)
 	valid, errors := v4parser.Validate(req.Query)
@@ -84,7 +79,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		v4Resp.Groups = make([]v4api.Group, 0)
 		v4Resp.Pagination = v4api.Pagination{Start: 0, Total: 0, Rows: 0}
 		v4Resp.StatusCode = http.StatusOK
-		v4Resp.ContentLanguage = acceptLang
 		c.JSON(http.StatusOK, v4Resp)
 		return
 	}
@@ -175,7 +169,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	}
 
 	v4Resp.StatusCode = http.StatusOK
-	v4Resp.ContentLanguage = acceptLang
 	c.JSON(http.StatusOK, v4Resp)
 }
 
