@@ -320,19 +320,10 @@ func getVarField(varFields *[]JMRLVarFields, marc string, subfield string) []str
 	return out
 }
 
-// helper to find index of a substring starting at a specific offset
-func indexAt(s string, tgt string, startIdx int) int {
-	idx := strings.Index(s[startIdx:], tgt)
-	if idx > -1 {
-		idx += startIdx
-	}
-	return idx
-}
-
 // Facets placeholder implementaion for a V4 facet POST.
 func (svc *ServiceContext) facets(c *gin.Context) {
 	log.Printf("JMRL facets requested, but JMRL does not support this. Returning empty list")
-	empty := make(map[string]interface{})
+	empty := make(map[string]any)
 	empty["facets"] = make([]v4api.Facet, 0)
 	c.JSON(http.StatusOK, empty)
 }
@@ -341,11 +332,6 @@ func (svc *ServiceContext) facets(c *gin.Context) {
 func (svc *ServiceContext) getResource(c *gin.Context) {
 	id := c.Param("id")
 	log.Printf("Resource %s details requested", id)
-	acceptLang := strings.Split(c.GetHeader("Accept-Language"), ",")[0]
-	if acceptLang == "" {
-		acceptLang = "en-US"
-	}
-
 	tgtURL := fmt.Sprintf("%s/bibs/%s?fields=default,varFields,locations,available", svc.API, id)
 	resp, err := svc.apiGet(tgtURL)
 	if err != nil {
