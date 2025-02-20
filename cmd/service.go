@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -16,7 +16,6 @@ import (
 	"github.com/uvalib/virgo4-api/v4api"
 
 	"github.com/gin-gonic/gin"
-	"github.com/nicksnyder/go-i18n/v2/i18n"
 	"github.com/uvalib/virgo4-jwt/v4jwt"
 )
 
@@ -28,7 +27,6 @@ type ServiceContext struct {
 	AccessToken     string
 	AccessExpiresAt time.Time
 	JWTKey          string
-	I18NBundle      *i18n.Bundle
 	HTTPClient      *http.Client
 }
 
@@ -265,13 +263,13 @@ func handleAPIResponse(URL string, resp *http.Response, err error) ([]byte, *Req
 		return nil, &RequestError{StatusCode: status, Message: errMsg}
 	} else if resp.StatusCode != http.StatusOK {
 		defer resp.Body.Close()
-		bodyBytes, _ := ioutil.ReadAll(resp.Body)
+		bodyBytes, _ := io.ReadAll(resp.Body)
 		status := resp.StatusCode
 		errMsg := string(bodyBytes)
 		return nil, &RequestError{StatusCode: status, Message: errMsg}
 	}
 
 	defer resp.Body.Close()
-	bodyBytes, _ := ioutil.ReadAll(resp.Body)
+	bodyBytes, _ := io.ReadAll(resp.Body)
 	return bodyBytes, nil
 }
