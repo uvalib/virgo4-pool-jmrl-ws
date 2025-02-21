@@ -9,7 +9,7 @@ require (
 	github.com/gin-contrib/gzip v1.2.2
 	github.com/gin-gonic/contrib v0.0.0-20250113154928-93b827325fec
 	github.com/gin-gonic/gin v1.10.0
-	github.com/uvalib/virgo4-api v0.0.0-20241126213111-b647424688f9
+	github.com/uvalib/virgo4-api v1.0.0
 	github.com/uvalib/virgo4-jwt v1.2.1
 	github.com/uvalib/virgo4-parser v0.0.0-20220606190657-5119d778d14a
 )
