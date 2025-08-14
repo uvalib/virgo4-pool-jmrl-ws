@@ -1,17 +1,17 @@
 module github.com/uvalib/virgo4-pool-jmrl-ws
 
-go 1.23.0
+go 1.24.0
 
-toolchain go1.24.0
+toolchain go1.24.5
 
 require (
 	github.com/gin-contrib/cors v1.7.6
 	github.com/gin-contrib/gzip v1.2.3
 	github.com/gin-gonic/contrib v0.0.0-20250521004450-2b1292699c15
 	github.com/gin-gonic/gin v1.10.1
-	github.com/uvalib/virgo4-api v1.0.0
+	github.com/uvalib/virgo4-api v1.0.1
 	github.com/uvalib/virgo4-jwt v1.2.3
-	github.com/uvalib/virgo4-parser v0.0.0-20250811215851-aa9ff8900a84
+	github.com/uvalib/virgo4-parser v1.0.0
 )
 
 require (
@@ -38,7 +38,7 @@ require (
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	golang.org/x/arch v0.20.0 // indirect
 	golang.org/x/crypto v0.41.0 // indirect
-	golang.org/x/exp v0.0.0-20250811191247-51f88131bc50 // indirect
+	golang.org/x/exp v0.0.0-20250813145105-42675adae3e6 // indirect
 	golang.org/x/net v0.43.0 // indirect
 	golang.org/x/sys v0.35.0 // indirect
 	golang.org/x/text v0.28.0 // indirect

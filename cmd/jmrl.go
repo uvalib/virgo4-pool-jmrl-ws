@@ -83,7 +83,7 @@ func (svc *ServiceContext) search(c *gin.Context) {
 		return
 	}
 
-	// date, identifier, journal_title, fulltext, series, collection, and filter are not supported.
+	// date, identifier, journal_title, fulltext, series, and filter are not supported.
 	// Fail these with a bad request and info about the reason
 	// We mark these messages as WARNING's because they are expected
 	if strings.Contains(req.Query, "date:") {
@@ -109,11 +109,6 @@ func (svc *ServiceContext) search(c *gin.Context) {
 	if strings.Contains(req.Query, "series:") {
 		log.Printf("WARNING: series queries are not supported")
 		c.String(http.StatusNotImplemented, "Series queries are not supported")
-		return
-	}
-	if strings.Contains(req.Query, "collection:") {
-		log.Printf("WARNING: collection queries are not supported")
-		c.String(http.StatusNotImplemented, "Collection queries are not supported")
 		return
 	}
 
