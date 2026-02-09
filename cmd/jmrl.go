@@ -199,7 +199,7 @@ func getResultFields(bib *JMRLBib) []v4api.RecordField {
 		fields = append(fields, f)
 	}
 
-	f = v4api.RecordField{Name: "publication_date", Type: "publication_date", Label: "Publication Date",
+	f = v4api.RecordField{Name: "published_date", Type: "published_date", Label: "Publication Date",
 		Value: fmt.Sprintf("%d", bib.PublishYear), CitationPart: "published_date"}
 	fields = append(fields, f)
 
