@@ -170,6 +170,12 @@ func (svc *ServiceContext) authMiddleware(c *gin.Context) {
 		return
 	}
 
+	if v4Claims.UserID == "anonymous" {
+		log.Printf("Anonymous users are not supported")
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
 	// add the parsed claims and signed JWT string to the request context so other handlers can access it.
 	c.Set("jwt", tokenStr)
 	c.Set("claims", v4Claims)
